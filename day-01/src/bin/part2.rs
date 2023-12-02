@@ -45,13 +45,20 @@ fn get_num(line: &str) -> u32 {
     let mut current_max: usize = 0;
 
     for (num, str_word) in numbers.into_iter().enumerate() {
-        if let Some(pos) = line.find(str_word) {
-            if pos < start_ptr && pos < current_min {
+        let num_word_idxs: Vec<(usize, &str)> = line.match_indices(str_word).collect();
+        if num_word_idxs.is_empty() {
+            continue;
+        }
+        for (pos, _) in [
+            num_word_idxs.first().unwrap(),
+            num_word_idxs.last().unwrap(),
+        ] {
+            if *pos < start_ptr && *pos < current_min {
                 result.0 = from_digit((num + 1) as u32, 10).unwrap();
-                current_min = pos;
-            } else if pos > end_ptr && pos > current_max {
+                current_min = *pos;
+            } else if *pos > end_ptr && *pos > current_max {
                 result.1 = from_digit((num + 1) as u32, 10).unwrap();
-                current_max = pos;
+                current_max = *pos;
             }
         }
     }
@@ -74,51 +81,81 @@ mod tests {
     use super::*;
 
     #[test]
-    fn multiple_digits_1() {
+    fn multiple_digits_01() {
         let result = get_num("two1nine");
         assert_eq!(result, 29);
     }
 
     #[test]
-    fn multiple_digits_2() {
+    fn multiple_digits_02() {
         let result = get_num("eightwothree");
         assert_eq!(result, 83);
     }
 
     #[test]
-    fn multiple_digits_3() {
+    fn multiple_digits_03() {
         let result = get_num("abcone2threexyz");
         assert_eq!(result, 13);
     }
 
     #[test]
-    fn multiple_digits_4() {
+    fn multiple_digits_04() {
         let result = get_num("xtwone3four");
         assert_eq!(result, 24);
     }
 
     #[test]
-    fn multiple_digits_5() {
+    fn multiple_digits_05() {
         let result = get_num("4nineeightseven2");
         assert_eq!(result, 42);
     }
 
     #[test]
-    fn multiple_digits_6() {
+    fn multiple_digits_06() {
         let result = get_num("zoneight234");
         assert_eq!(result, 14);
     }
 
     #[test]
-    fn multiple_digits_7() {
+    fn multiple_digits_07() {
         let result = get_num("7pqrstsixteen");
         assert_eq!(result, 76);
     }
 
     #[test]
-    fn multiple_digits_8() {
+    fn multiple_digits_08() {
         let result = get_num("1eightwothree");
         assert_eq!(result, 13);
+    }
+
+    #[test]
+    fn multiple_digits_09() {
+        let result = get_num("l9");
+        assert_eq!(result, 99);
+    }
+
+    #[test]
+    fn multiple_digits_10() {
+        let result = get_num("429");
+        assert_eq!(result, 49);
+    }
+
+    #[test]
+    fn multiple_digits_11() {
+        let result = get_num("one7118");
+        assert_eq!(result, 18);
+    }
+
+    #[test]
+    fn multiple_digits_12() {
+        let result = get_num("sixdtzllvpkppvlxhpkfive8sevenmdzpbnlcnfpcltg3");
+        assert_eq!(result, 63);
+    }
+
+    #[test]
+    fn multiple_digits_13() {
+        let result = get_num("threerznlrhtkjp23mtflmbrzq395three");
+        assert_eq!(result, 33);
     }
 
     #[test]
