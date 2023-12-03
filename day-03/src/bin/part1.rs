@@ -1,5 +1,5 @@
 use ndarray::prelude::*;
-use std::{fs, result};
+use std::fs;
 
 const DOT: i32 = -2;
 const CHR: i32 = -1;
@@ -10,15 +10,10 @@ fn main() {
     let arr = matrix_from_string(&contents);
     println!("{:?}", arr);
 
-    let window = get_window(0, 0, &arr);
+    let window = get_window(1, 3, &arr);
     println!("{:?}", window);
+    println!("{}", is_adjacent(&window));
 
-    // let result: u32 = contents
-    //     .lines()
-    //     .into_iter()
-    //     .map(|line: &str| game_checker(line))
-    //     .sum();
-    // println!("{}", result)
 }
 
 fn matrix_from_string(input: &String) -> ArrayBase<ndarray::OwnedRepr<i32>, Dim<[usize; 2]>> {
@@ -47,17 +42,79 @@ fn get_window<'a>(
     y: usize,
     arr: &'a ArrayBase<ndarray::OwnedRepr<i32>, Dim<[usize; 2]>>,
 ) -> ArrayBase<ndarray::ViewRepr<&'a i32>, Dim<[usize; 2]>> {
-    // TODO make this boundries from array dim
-    let min_value = 1;
-    let max_value = 138;
-    let trimmed_x = std::cmp::max(std::cmp::min(x, max_value), min_value);
-    let trimmed_y = std::cmp::max(std::cmp::min(y, max_value), min_value);
-    println!("{}: {}", trimmed_x, trimmed_y);
+    let mut from_x: usize;
+    let mut to_x: usize;
+    let mut from_y: usize;
+    let mut to_y: usize;
+
+    match x.cmp(&0) {
+        std::cmp::Ordering::Equal => {
+            from_x = x;
+            to_x = x + 1;
+        },
+        std::cmp::Ordering::Greater => {
+            from_x = x - 1;
+            to_x = x + 1;
+        },
+        std::cmp::Ordering::Less => {
+            panic!("Somehow usize is negative");
+        }
+    };
+
+    match y.cmp(&0) {
+        std::cmp::Ordering::Equal => {
+            from_y = y;
+            to_y = y + 1;
+        },
+        std::cmp::Ordering::Greater => {
+            from_y = y - 1;
+            to_y = y + 1;
+        },
+        std::cmp::Ordering::Less => {
+            panic!("Somehow usize is negative");
+        }
+
+    }
+
+    let max_x =  arr.shape()[0] - 1;
+    let max_y =  arr.shape()[1] - 1;
+
+    match x.cmp(&max_x) {
+        std::cmp::Ordering::Equal => {
+            from_x = x - 1;
+            to_x = x;
+        },
+        std::cmp::Ordering::Greater => {
+            panic!("should not be greater than 139");
+        },
+        std::cmp::Ordering::Less => {}
+    };
+
+    match y.cmp(&max_y) {
+        std::cmp::Ordering::Equal => {
+            from_y = y - 1;
+            to_y = y;
+        },
+        std::cmp::Ordering::Greater => {
+            panic!("should not be greater than 139");
+        },
+        std::cmp::Ordering::Less => {}
+
+    }
     let result = arr.slice(s![
-        trimmed_x - 1..=trimmed_x + 1,
-        trimmed_y - 1..=trimmed_y + 1
+        from_x..=to_x,
+        from_y..=to_y
     ]);
     result
+}
+
+fn is_adjacent(window: &ArrayBase<ndarray::ViewRepr<&i32>, Dim<[usize; 2]>>) -> bool {
+    for cell in window {
+        if *cell == CHR {
+            return true
+        }
+    }
+    false
 }
 
 #[cfg(test)]
