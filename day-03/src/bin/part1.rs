@@ -6,14 +6,33 @@ const CHR: i32 = -1;
 
 fn main() {
     let contents = fs::read_to_string("input1.txt").expect("No file found");
-
     let arr = matrix_from_string(&contents);
-    println!("{:?}", arr);
+    println!("{}", sum_adjacents(arr));
+}
 
-    let window = get_window(1, 3, &arr);
-    println!("{:?}", window);
-    println!("{}", is_adjacent(&window));
+fn sum_adjacents(arr: ArrayBase<ndarray::OwnedRepr<i32>, Dim<[usize; 2]>>) -> i32 {
+    let mut summator: i32 = 0;
+    let mut current_digit: Vec<i32> = vec![];
+    let mut adjacent_flag = false;
 
+    for x in 0..arr.shape()[1] {
+        for y in 0..arr.shape()[0]{
+            if arr[[x, y]] >= 0 {
+                current_digit.push(arr[[x, y]]);
+                let window = get_window(x, y, &arr);
+                if is_adjacent(&window) {
+                    adjacent_flag = true;
+                }
+            } else {
+                if adjacent_flag {
+                     summator += vec_concat(&current_digit);
+                    adjacent_flag = false;
+                }
+            current_digit.clear();
+            }
+        }
+    }
+    summator
 }
 
 fn matrix_from_string(input: &String) -> ArrayBase<ndarray::OwnedRepr<i32>, Dim<[usize; 2]>> {
@@ -117,6 +136,10 @@ fn is_adjacent(window: &ArrayBase<ndarray::ViewRepr<&i32>, Dim<[usize; 2]>>) -> 
     false
 }
 
+fn vec_concat(vec: &[i32]) -> i32 {
+    vec.iter().fold(0, |acc, elem| acc * 10 + elem)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -133,6 +156,8 @@ mod tests {
 ......755.
 ...$.*....
 .664.598..";
-        assert_eq!(9, 9);
+        let arr = matrix_from_string(&input.to_owned());
+        let result = sum_adjacents(arr);
+        assert_eq!(result, 4361);
     }
 }
